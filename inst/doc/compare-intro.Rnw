@@ -1,0 +1,18 @@
+\documentclass[a4paper]{report}
+\usepackage{Rnews}
+\usepackage{Sweave}
+\usepackage[round]{natbib}
+\usepackage{boxedminipage} % for compare.tex
+\usepackage{hyperref} % for \url
+\bibliographystyle{abbrvnat}
+
+%\VignetteIndexEntry{Introduciton to the compare package}
+%\VignettePackage{compare}
+
+\begin{document}
+
+\begin{article}
+  \input{compare}
+\end{article}
+
+\end{document}
