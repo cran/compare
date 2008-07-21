@@ -53,7 +53,14 @@ compareFile <- function(filename, modelNames,
             roundList[namesInCommon] <- round[namesInCommon]
         }
     } else {
-        roundList <- as.list(rep(round, length.out=length(modelNames)))
+        if (is.function(round)) {
+            roundList <- vector("list", length(modelNames))
+            for (i in seq_along(roundList)) {
+                roundList[[i]] <- round
+            }
+        } else {
+            roundList <- as.list(rep(round, length.out=length(modelNames)))
+        }
     }
     # Compare with model answers
     results <- mapply(compareName, modelAnswers, as.list(modelNames),

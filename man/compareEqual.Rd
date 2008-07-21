@@ -69,7 +69,7 @@ compareEqual(model, comparison, transform = character(), \dots)
     If \code{FALSE} there is no rounding, if \code{TRUE} both objects
     are rounded to zero decimal places, if an integer value, then
     both objects are rounded to the specified number of decimal
-    places. }
+    places. May also be a function (of one argument). }
   \item{ignoreCase}{ For character vectors,
     whether to ignore the case of the strings. }
   \item{trim}{ For character vectors,
@@ -105,7 +105,8 @@ compareEqual(model, comparison, transform = character(), \dots)
   For numeric vectors, the comparison uses \code{all.equal()}
   to allow for differences in floating-point representation.
   The \code{round} argument also allows for much more lenient
-  comparisons.  
+  comparisons.  The \code{round} argument can also be a function,
+  e.g., \code{floor()} (see other examples below).
 }
 \value{
   An object of class \code{"comparison"}.
@@ -118,6 +119,8 @@ compareEqual(model, comparison, transform = character(), \dots)
 }
 \examples{
 compareEqual(letters, paste(" ", letters, " "), trim=TRUE)
+compareEqual(c(.1, 1, 10), c(.13, 1.3, 13),
+             round=function(x) { signif(x, 1) })
 }
 \keyword{utilities}
 \keyword{logic}

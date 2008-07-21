@@ -89,8 +89,14 @@ print.multipleComparison <- function(x, ...) {
 # Utilities
 ###############
 
-coercedMsg <- function(from) {
-    paste("coerced from <", class(from)[1], ">", sep="")
+coercedMsg <- function(from, to) {
+    paste("coerced from <", class(from)[1], "> to <", to, ">", sep="")
+}
+
+nocomparisonMsg <- function(from, to) {
+    paste("No comparison available between <",
+          class(from), "> and <", class(to),
+          ">", sep="")
 }
 
 # DO NOT restore class OR levels (for factors)
@@ -134,6 +140,44 @@ compareEqual <- function(model, comparison, transform=character(), ...) {
     UseMethod("compareEqual")
 }
 
+# Following all.equal()'s lead ...
+compareEqual.default <- function(model, comparison, 
+                                 transform=character(),
+                                 ...) {
+    if (is.language(model) || is.function(model) || is.environment(model)) {
+        compareEqual.language(model, comparison, transform, ...)
+    } else if (is.recursive(model)) {
+        transform <- c(transform, "model treated as list")
+        # unlist() may not remove class
+        compareEqual.list(as.list(unclass(model)),
+                          as.list(unclass(comparison)),
+                          transform, ...)
+    } else {
+        transform <- c(transform, nocomparisonMsg(model, comparison))
+        comparison(model, comparison, FALSE, transform)        
+    }
+}
+
+# Following all.equal()'s lead ...
+compareEqual.language <- function(model, comparison,
+                                 transform=character(),
+                                 ...) {
+    if (mode(model) == "expression" &&
+        mode(comparison) == "expression") {
+        transform <- c(transform, "model treated as list")
+        compareEqual.list(as.list(unclass(model)),
+                          as.list(unclass(comparison)),
+                          transform, ...)
+    } else if (mode(model) == mode(comparison)) {
+        transform <- c(transform, "model treated as character")
+        compareEqual(deparse(model), deparse(comparison),
+                     transform, ...)
+    } else {
+        transform <- c(transform, nocomparisonMsg(model, comparison))
+        comparison(model, comparison, FALSE, transform)        
+    }
+}
+                                  
 compareEqual.logical <- function(model, comparison,
                                  transform=character(),
                                  ...) {
@@ -149,8 +193,21 @@ compareEqual.numeric <- function(model, comparison,
     result <- isTRUE(all.equal(model, comparison))
     comp <- comparison(model, comparison, result, transform)
     if (is.numeric(comparison)) {
-        # Allow rounding 
-        if ((is.numeric(round) || round)) {
+        # Allow rounding
+        if (is.function(round)) {
+            # Allow function (of single argument)
+            # Only round if necessary
+            if (!isTRUE(all.equal(model, comparison)) &&
+                !identical(round(comparison), comparison)) {
+                roundedM <- round(model)
+                roundedC <- round(comparison)
+                roundedT <- c(transform, "rounded")
+                result <- isTRUE(all.equal(roundedM, roundedC))
+                comp <- comparison(roundedM, roundedC, result, roundedT,
+                                   model, comparison, transform)
+            }            
+        } else if ((is.numeric(round) || round)) {
+            # Allow round=TRUE or round=<number of digits to round>
             if (is.logical(round)) {
                 round <- 0
             }
@@ -500,7 +557,18 @@ compareEqual.list <- function(model, comparison,
                               ignoreNameCase=FALSE,
                               ...,
                               recurseFun=compareEqual) {
-    if (is.list(comparison)) {
+    if (length(model) == 0) { 
+        # Special case of model zero-length
+        if (length(comparison) == 0) {
+            comp <- comparison(model, comparison,
+                               identical(attributes(model),
+                                         attributes(comparison)),
+                               transform)
+        } else {
+            comp <- comparison(model, comparison, FALSE, transform)
+        }
+    } else if (length(comparison) > 0 &&
+               is.list(comparison)) {
         # No matter what happens, the partial result is
         # what was originally passed in
         partialM <- model
@@ -538,8 +606,15 @@ same <- function(model, comparison, transform, equal, ...) {
     if (!comp$result && equal) {
         comp <- compareEqual(model, comparison, transform, ...)
     }
-    comparison(comp$tM, comp$tC, comp$result, comp$transform,
-               model, comparison, transform)
+    if (inherits(comp, "multipleComparison"))
+        multipleComparison(comp$tM, comp$tC, comp$result,
+                           comp$detailedResult,
+                           comp$transform,
+                           model, comparison, transform)
+    else
+        comparison(comp$tM, comp$tC, comp$result,
+                   comp$transform,
+                   model, comparison, transform)
 }
 
 ###############
@@ -552,6 +627,42 @@ compareCoerce <- function(model, comparison,
     UseMethod("compareCoerce")
 }
 
+# Following all.equal()'s lead ...
+compareCoerce.default <- function(model, comparison, 
+                                  transform=character(),
+                                  ...) {
+    if (is.language(model) || is.function(model) || is.environment(model)) {
+        compareCoerce.language(model, comparison, transform, ...)
+    } else if (is.recursive(model)) {
+        transform <- c(transform, "model treated as list")
+        compareCoerce.list(as.list(unclass(model)),
+                           as.list(unclass(comparison)),
+                           transform, ...)
+    } else {
+        transform <- c(transform, nocomparisonMsg(model, comparison))
+    }
+}
+
+# Following all.equal()'s lead ...
+compareCoerce.language <- function(model, comparison,
+                                   transform=character(),
+                                   ...) {
+    if (mode(model) == "expression" &&
+        mode(comparison) == "expression") {
+        transform <- c(transform, "model treated as list")
+        compareCoerce.list(as.list(unclass(model)),
+                           as.list(unclass(comparison)),
+                           transform, ...)
+    } else if (mode(model) == mode(comparison)) {
+        transform <- c(transform, "model treated as character")
+        compareCoerce(deparse(model), deparse(comparison),
+                      transform, ...)
+    } else {
+        transform <- c(transform, nocomparisonMsg(model, comparison))
+        comparison(model, comparison, FALSE, transform)        
+    }
+}
+                                  
 compareCoerce.logical <- function(model, comparison,
                                   transform=character(),
                                   equal=TRUE, ...) {
@@ -562,7 +673,7 @@ compareCoerce.logical <- function(model, comparison,
         attrs <- attributes(comparison)
         coerced <- as.logical(comparison)
         coerced <- restoreAttrs(coerced, attrs)
-        transform <- c(transform, coercedMsg(comparison))
+        transform <- c(transform, coercedMsg(comparison, "logical"))
         comp <- same(model, coerced, transform, equal, ...)
     }
     comp    
@@ -586,7 +697,7 @@ compareCoerce.integer <- function(model, comparison,
             coerced <- suppressWarnings(as.integer(comparison))
         }
         coerced <- restoreAttrs(coerced, attrs)
-        transform <- c(transform, coercedMsg(comparison))
+        transform <- c(transform, coercedMsg(comparison, "integer"))
         comp <- same(model, coerced, transform, equal, ...)
     }
     comp    
@@ -611,7 +722,7 @@ compareCoerce.numeric <- function(model, comparison,
             coerced <- suppressWarnings(as.numeric(comparison))
         }
         coerced <- restoreAttrs(coerced, attrs)
-        transform <- c(transform, coercedMsg(comparison))
+        transform <- c(transform, coercedMsg(comparison, "numeric"))
         comp <- same(model, coerced, transform, equal, ...)
     }
     comp    
@@ -630,7 +741,7 @@ compareCoerce.character <- function(model, comparison,
         # Retain all attributes so we can check for those separately
         coerced <- as.character(comparison)
         coerced <- restoreAttrs(coerced, attrs)
-        transform <- c(transform, coercedMsg(comparison))
+        transform <- c(transform, coercedMsg(comparison, "character"))
         comp <- same(model, coerced, transform, equal, ...)
     }
     comp    
@@ -649,7 +760,7 @@ compareCoerce.factor <- function(model, comparison,
         # Retain all attributes so we can check for those separately
         coerced <- as.factor(comparison)
         coerced <- restoreAttrs(coerced, attrs)
-        transform <- c(transform, coercedMsg(comparison))
+        transform <- c(transform, coercedMsg(comparison, "factor"))
         comp <- same(model, coerced, transform, equal, ...)
     }
     comp    
@@ -665,23 +776,7 @@ compareCoerce.array <- function(model, comparison,
         # Retain all attributes so we can check for those separately
         coerced <- as.array(comparison)
         coerced <- restoreAttrs(coerced, attrs)
-        transform <- c(transform, coercedMsg(comparison))
-        comp <- same(model, coerced, transform, equal, ...)        
-    }
-    comp
-}
-
-compareCoerce.array <- function(model, comparison,
-                                transform=character(),
-                                equal=TRUE, ...) {
-    if (is.array(comparison)) {
-        comp <- same(model, comparison, transform, equal, ...)
-    } else {
-        attrs <- attributes(comparison)
-        # Retain all attributes so we can check for those separately
-        coerced <- as.array(comparison)
-        coerced <- restoreAttrs(coerced, attrs)
-        transform <- c(transform, coercedMsg(comparison))
+        transform <- c(transform, coercedMsg(comparison, "array"))
         comp <- same(model, coerced, transform, equal, ...)        
     }
     comp
@@ -697,7 +792,7 @@ compareCoerce.matrix <- function(model, comparison,
         # Retain all attributes so we can check for those separately
         coerced <- as.matrix(comparison)
         coerced <- restoreAttrs(coerced, attrs)
-        transform <- c(transform, coercedMsg(comparison))
+        transform <- c(transform, coercedMsg(comparison, "matrix"))
         comp <- same(model, coerced, transform, equal, ...)        
     }
     comp
@@ -713,7 +808,7 @@ compareCoerce.table <- function(model, comparison,
         # Retain all attributes so we can check for those separately
         coerced <- as.table(comparison)
         coerced <- restoreAttrs(coerced, attrs)
-        transform <- c(transform, coercedMsg(comparison))
+        transform <- c(transform, coercedMsg(comparison, "table"))
         comp <- same(model, coerced, transform, equal, ...)        
     }
     comp
@@ -798,7 +893,7 @@ compareCoerce.data.frame <- function(model, comparison,
         # Retain all attributes so we can check for those separately
         comparison <- as.data.frame(comparison)
         comparison <- restoreAttrs(comparison, attrs)
-        transform <- c(transform, coercedMsg(comparison))
+        transform <- c(transform, coercedMsg(comparison, "data frame"))
     }
     # Order columns before trying coercion
     if (ignoreColOrder &&
@@ -898,29 +993,43 @@ compareCoerce.list <- function(model, comparison,
                                ignoreComponentOrder=FALSE,
                                ignoreNameCase=FALSE,
                                ...) {
-    if (!inherits(comparison, "list")) {
-        transform <- c(transform, coercedMsg(comparison))
-        # Retain all attributes so we can check for those separately
-        attrs <- attributes(comparison)
-        comparison <- as.list(comparison)
-        class(comparison) <- NULL
-        comparison <- restoreAttrs(comparison, attrs)
+    if (length(model) == 0) { 
+        # Special case of model zero-length
+        if (length(comparison) == 0) {
+            comp <- comparison(model, comparison,
+                               identical(attributes(model),
+                                         attributes(comparison)),
+                               transform)
+        } else {
+            comp <- comparison(model, comparison, FALSE, transform)
+        }
+    } else if (length(comparison) > 0) {
+        if (!inherits(comparison, "list")) {
+            transform <- c(transform, coercedMsg(comparison, "list"))
+            # Retain all attributes so we can check for those separately
+            attrs <- attributes(comparison)
+            comparison <- as.list(comparison)
+            class(comparison) <- NULL
+            comparison <- restoreAttrs(comparison, attrs)
+        }
+        # Allow for reordering by name (possibly ignoring name case)
+        if (ignoreComponentOrder &&
+            !is.null(names(model)) &&
+            similarNames(model, comparison, ignoreNameCase)) {
+            temp <- reorderComparison(model, comparison,
+                                      transform, ignoreNameCase,
+                                      c)
+            model <- temp$model
+            comparison <- temp$comparison
+            transform <- c(temp$transform, "reordered components")
+        }
+        comp <- coerceListComponents(model, comparison, transform,
+                                     ignoreComponentOrder,
+                                     ignoreNameCase,
+                                     ...)
+    } else {
+        comp <- comparison(model, comparison, FALSE, transform)
     }
-    # Allow for reordering by name (possibly ignoring name case)
-    if (ignoreComponentOrder &&
-        !is.null(names(model)) &&
-        similarNames(model, comparison, ignoreNameCase)) {
-        temp <- reorderComparison(model, comparison,
-                                  transform, ignoreNameCase,
-                                  c)
-        model <- temp$model
-        comparison <- temp$comparison
-        transform <- c(temp$transform, "reordered components")
-    }
-    comp <- coerceListComponents(model, comparison, transform,
-                                 ignoreComponentOrder,
-                                 ignoreNameCase,
-                                 ...)
     comp
 }
 
@@ -1147,30 +1256,59 @@ compareIgnoreOrder <- function(model, comparison,
     UseMethod("compareIgnoreOrder")
 }
 
-# Handle any sort of vector ?
 # More complex objects will need to write specific methods
 compareIgnoreOrder.default <- function(model, comparison,
                                        transform=character(),
                                        equal=TRUE, ...) {
-    # Only try reordering if it is necessary
-    modelOrder <- order(model)
-    comparisonOrder <- order(comparison)
-    if (!identical(modelOrder, comparisonOrder)) {        
-        # Retain all attributes so we can check for those separately
-        attrsM <- attributes(model)
-        attrsC <- attributes(comparison)
-        sortedM <- sort(model)
-        sortedC <- sort(comparison)
-        sortedM <- restoreAttrs(sortedM, attrsM)
-        sortedC <- restoreAttrs(sortedC, attrsC)
-        transform <- c(transform, "sorted")
-        comp <- same(sortedM, sortedC, transform, equal, ...)
+    if (is.language(model) || is.function(model) || is.environment(model)) {
+        comp <- compareIgnoreOrder.language(model, comparison, transform, ...)
+    } else if (is.recursive(model)) {
+        transform <- c(transform, "model treated as list")
+        comp <- compareIgnoreOrder.list(as.list(unclass(model)),
+                                        as.list(unclass(comparison)),
+                                        transform, ...)
     } else {
-        comp <- same(model, comparison, transform, equal, ...)
+        # Handle any sort of vector ?
+        # Only try reordering if it is necessary
+        modelOrder <- order(model)
+        comparisonOrder <- order(comparison)
+        if (!identical(modelOrder, comparisonOrder)) {        
+            # Retain all attributes so we can check for those separately
+            attrsM <- attributes(model)
+            attrsC <- attributes(comparison)
+            sortedM <- sort(model)
+            sortedC <- sort(comparison)
+            sortedM <- restoreAttrs(sortedM, attrsM)
+            sortedC <- restoreAttrs(sortedC, attrsC)
+            transform <- c(transform, "sorted")
+            comp <- same(sortedM, sortedC, transform, equal, ...)
+        } else {
+            comp <- same(model, comparison, transform, equal, ...)
+        }
     }
     comp    
 }
 
+# Following all.equal()'s lead ...
+compareIgnoreOrder.language <- function(model, comparison,
+                                        transform=character(),
+                                        ...) {
+    if (mode(model) == "expression" &&
+        mode(comparison) == "expression") {
+        transform <- c(transform, "model treated as list")
+        compareIgnoreOrder.list(as.list(unclass(model)),
+                                as.list(unclass(comparison)),
+                                transform, ...)
+    } else if (mode(model) == mode(comparison)) {
+        transform <- c(transform, "model treated as character")
+        compareIgnoreOrder(deparse(model), deparse(comparison),
+                           transform, ...)
+    } else {
+        transform <- c(transform, nocomparisonMsg(model, comparison))
+        comparison(model, comparison, FALSE, transform)        
+    }
+}
+                                  
 # Put the each component of dimnames in alphabetical order
 compareIgnoreOrder.array <- function(model, comparison,
                                      transform=character(),

@@ -30,6 +30,8 @@ export(transforms,
 
 S3method(compareIdentical, default)
 
+S3method(compareEqual, default)
+S3method(compareEqual, language)
 S3method(compareEqual, logical)
 S3method(compareEqual, numeric)
 S3method(compareEqual, character)
@@ -40,6 +42,8 @@ S3method(compareEqual, table)
 S3method(compareEqual, data.frame)
 S3method(compareEqual, list)
 
+S3method(compareCoerce, default)
+S3method(compareCoerce, language)
 S3method(compareCoerce, logical)
 S3method(compareCoerce, integer)
 S3method(compareCoerce, numeric)
@@ -59,6 +63,7 @@ S3method(compareShorten, data.frame)
 S3method(compareShorten, list)
 
 S3method(compareIgnoreOrder, default)
+S3method(compareIgnoreOrder, language)
 S3method(compareIgnoreOrder, array)
 S3method(compareIgnoreOrder, data.frame)
 S3method(compareIgnoreOrder, list)

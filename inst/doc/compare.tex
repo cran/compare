@@ -192,7 +192,8 @@ as the basis for assigning partial marks for an answer that
 is close to the correct answer, and for providing feedback 
 to the student about where marks were lost.
 
-It would seem then that \code{all.equal()} is an ideal 
+The \code{all.equal()} function has some useful features that
+make it a helpful 
 tool for comparing student answers with model answers.
 However, there is an approach that can perform better than this.
 
@@ -226,8 +227,9 @@ Levels: a b c
 \end{Soutput}
 \end{Schunk}
 The \code{all.equal()} function reports that these objects are different
-because they differ in terms of their fundamental mode, one has
-attributes and the other does not, and each object is of a different class.
+because they differ in terms of their fundamental mode---one has
+attributes and the other does not---and because
+each object is of a different class.
 
 \begin{Schunk}
 \begin{Sinput}
@@ -260,7 +262,7 @@ got to the right answer.
 \end{Sinput}
 \begin{Soutput}
 TRUE
-  coerced from <factor>
+  coerced from <factor> to <character>
 \end{Soutput}
 \end{Schunk}
 Another limitation of \code{all.equal()} is that it does not
@@ -327,7 +329,7 @@ vector.
 \end{Sinput}
 \begin{Soutput}
 TRUE
-  coerced from <factor>
+  coerced from <factor> to <character>
 \end{Soutput}
 \end{Schunk}
 
@@ -349,7 +351,7 @@ the character vector is being coerced to a factor.
 \end{Sinput}
 \begin{Soutput}
 TRUE
-  coerced from <character>
+  coerced from <character> to <factor>
 \end{Soutput}
 \end{Schunk}
 Of course, transforming an object is not guaranteed to produce 
@@ -361,7 +363,7 @@ identical objects if the original objects are genuinely different.
 \end{Sinput}
 \begin{Soutput}
 FALSE
-  coerced from <factor>
+  coerced from <factor> to <character>
 \end{Soutput}
 \end{Schunk}
 Notice, however, that even though the comparison failed,
@@ -381,15 +383,17 @@ in the last case, can also be ignored.
 \end{Sinput}
 \begin{Soutput}
 TRUE
-  coerced from <factor>
+  coerced from <factor> to <character>
   shortened model
 \end{Soutput}
 \end{Schunk}
 It is also possible to allow values to
 be sorted, or rounded, or to convert all character values to upper case
 (i.e., ignore the case of strings).
+
 Table \ref{table:transforms} provides a complete list of the
-transformations that are currently allowed and the arguments
+transformations that are currently allowed (in version 0.2
+of \pkg{compare}) and the arguments
 that are used to enable them.  
 
 A further argument to the \code{compare()} function, \code{allowAll},
@@ -431,7 +435,8 @@ Ignore all attributes of both the comparison and model objects;
 all attributes are dropped.\\[2mm]
 \code{round${}^*$} & 
 Allow numeric values to be rounded; either \code{FALSE} (the default),
-or an integer value giving the number of decimal places for rounding. \\[2mm]
+or an integer value giving the number of decimal places for rounding,
+or a function of one argument, e.g., \code{floor}. \\[2mm]
 \code{ignoreCase${}^*$} & 
 Ignore the case of character vectors;  both comparison and model
 are converted to upper case. \\[2mm]
@@ -468,20 +473,32 @@ it is \code{TRUE} by default, whereas almost all others
 are \code{FALSE}.  The \code{equal} argument is also especially influential
 because objects are compared after every transformation and this 
 argument controls
-whether each one of those comparisons is for equality or identity.
+what sort of comparison takes place.
+Objects are always compared using \code{identical()} first,
+which will only succeed if the objects have exactly
+the same representation in memory.  If the test using
+\code{identical()} fails and \code{equal=TRUE}, then a more
+lenient comparison is also performed.
+By default, this just means that numeric values are compared
+using \code{all.equal()}, but various other arguments can extend this
+to allow things like differences in case for character values (see the
+asterisked arguments in Table \ref{table:transforms}).
 
 The \code{round} argument is also special because  it always defaults to
-\code{FALSE}, even if \code{allowAll=TRUE}, so this argument
+\code{FALSE}, even if \code{allowAll=TRUE}.
+This means that the \code{round} argument
 must be specified explicitly in order to enable rounding.  
-This is because the value of 
-the argument is either \code{FALSE} or an integer value specifying the 
+The default is set up this way because the value of 
+the \code{round} argument is either \code{FALSE} or an 
+integer value specifying the 
 number of decimal places to round to.  For this argument, the value
 \code{TRUE} corresponds to rounding to zero decimal places.
 
-There is an additional argument \code{colsOnly} for comparing
+Finally, there is an additional argument \code{colsOnly} for comparing
 data frames.  This argument controls whether transformations 
-are only applied to columns (and not to rows).  The default is \code{TRUE};
-rows are not transformed.
+are only applied to columns (and not to rows).  For example, 
+by default, a data frame will only allow columns to be dropped,
+but not rows, if \code{shorten=TRUE}.  
 Note, however, that \code{ignoreOrder} means ignore the order of
 \emph{rows} for data frames and \code{ignoreColOrder} must be used
 to ignore the order of columns in comparisons involving data frames.
@@ -584,13 +601,16 @@ and ignore the case of the row names.
 TRUE
   renamed
   reordered columns
-  [Y] coerced from <factor>
-  [Z] coerced from <character>
+  [Y] coerced from <factor> to <character>
+  [Z] coerced from <character> to <factor>
   shortened comparison
   [Y] ignored case
   renamed rows
 \end{Soutput}
 \end{Schunk}
+
+Notice that we have used \code{allowAll=TRUE} to allow \code{compare()}
+to attempt all possible transformations at its disposal.
 
 \section*{Comparing files of \R{} code}
 
@@ -600,7 +620,7 @@ not only whether a student's answers are correct, but also how much
 incorrect answers differ from the model answer.
 
 As described earlier, submissions by students in the STATS 220 course consist
-of files of \R{} code.  Marking these consists of using 
+of files of \R{} code.  Marking these submissions consists of using 
 \code{source()} to run the code, then comparing the resulting objects
 with model answer objects.
 With approximately 100 students
@@ -754,13 +774,13 @@ and output are shown in Figure
 {\scriptsize
 \begin{Schunk}
 \begin{Soutput}
-         id                     age                    edu                    class                         IndianMothers         
-student1 TRUE                   TRUE                   TRUE                   TRUE reordered levels         FALSE object not found
-student2 TRUE                   TRUE                   TRUE                   TRUE                          TRUE                  
-student3 TRUE                   TRUE                   TRUE                   TRUE coerced from <character> FALSE object not found
-student4 TRUE                   TRUE                   TRUE                   TRUE coerced from <character> TRUE renamed object   
-student5 TRUE                   TRUE                   TRUE                   FALSE object not found        FALSE object not found
-student6 FALSE object not found FALSE object not found FALSE object not found FALSE object not found        FALSE object not found
+         id                     age                    edu                    class                                     IndianMothers         
+student1 TRUE                   TRUE                   TRUE                   TRUE reordered levels                     FALSE object not found
+student2 TRUE                   TRUE                   TRUE                   TRUE                                      TRUE                  
+student3 TRUE                   TRUE                   TRUE                   TRUE coerced from <character> to <factor> FALSE object not found
+student4 TRUE                   TRUE                   TRUE                   TRUE coerced from <character> to <factor> TRUE renamed object   
+student5 TRUE                   TRUE                   TRUE                   FALSE object not found                    FALSE object not found
+student6 FALSE object not found FALSE object not found FALSE object not found FALSE object not found                    FALSE object not found
 \end{Soutput}
 \end{Schunk}
 }
@@ -926,7 +946,9 @@ students themselves, both to check whether they have the correct
 answer and to provide feedback about how their answer differs 
 from the model answer.  More generally, the \code{compare()}
 function may have application wherever the \code{identical()}
-and \code{all.equal()} functions are currently in use.
+and \code{all.equal()} functions are currently in use.  For example,
+it may be useful when debugging code and for performing regression
+tests as part of a quality control process.
 
 Obvious extensions of the \pkg{compare} package include adding
 new transformations and providing comparison 
@@ -936,6 +958,10 @@ extensions might be developed are discussed in
 the vignette, ``Fundamentals of the Compare Package'',
 which is installed as part of the \pkg{compare} package.
 
-% \section*{Acknowledgements}
+\section*{Acknowledgements}
+
+Many thanks to the editors and anonymous reviewers for their useful
+comments and suggestions, on both this article and the 
+\pkg{compare} package itself.
 
 \bibliography{compare}

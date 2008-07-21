@@ -27,7 +27,10 @@ compareFiles(filenames, modelNames,
   \item{modelSave}{ The name of a binary file that can be used to load
     model objects. }
   \item{modelAnswers}{ A list containing model objects. }
-  \item{round}{  }
+  \item{round}{ A logical indicating whether to round,
+    or an integer indicating how many digits to round to, or a function
+    of one argument (that performs something like rounding), or
+    a named list of any of those. }
   \item{resultNames}{ A vector of names to be used to identify the
     results from different files. }
   \item{\dots}{ For \code{compareFile()}, arguments to the
@@ -49,6 +52,9 @@ compareFiles(filenames, modelNames,
   used in preference to source code;  if a list of objects is provided,
   that is used;  and if no model objects are specified, they are
   taken from the global workspace (using \code{modelNames}).
+
+  The round argument may be a named list so that different rounding
+  is applied to different comparisons.
 }
 \value{
   \code{compareFile()} returns an object of class

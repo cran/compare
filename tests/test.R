@@ -68,6 +68,16 @@ testCompare(compareEqual, 1:10, 1:10 + .1, round=TRUE)
 # non-equal floats (rounding)
 testCompare(compareEqual, 1:10, 1:10 + .6, round=TRUE, result=FALSE)
 
+# equal floats (round=signif)
+testCompare(compareEqual, c(.1, 1, 10), c(.1, 1, 10),
+            round=function(x) { signif(x, 1) })
+# non-equal floats (round=signif)
+testCompare(compareEqual, c(.1, 1, 10), c(.13, 1.3, 13),
+            round=function(x) { signif(x, 1) })
+# non-equal floats (rounding)
+testCompare(compareEqual, c(.1, 1, 10), c(.13, 1.3, 13),
+            round=TRUE, result=FALSE)
+
 # equal strings
 testCompare(compareEqual, letters, paste(" ", letters, " "),
             trim=TRUE)
@@ -208,6 +218,22 @@ comparison <- list(a=1:26, b=letters,
                    c=list(x=1:26))
 testCompare(compareEqual, model, comparison, result=FALSE)
 
+# equal "lm" objects
+x <- 1:10
+y <- rnorm(10)
+lm1 <- lm(y ~ x)
+testCompare(compareEqual, lm1, lm1)
+
+# non-equal "lm" objects
+y2 <- rnorm(10)
+lm2 <- lm(y2 ~ x)
+testCompare(compareEqual, lm1, lm2, result=FALSE)
+
+# equal expressions (also tests "call")
+testCompare(compareEqual, expression(x + y), expression(x + y))
+
+# non-equal expressions
+testCompare(compareEqual, expression(x + y), expression(y + x), result=FALSE)
 
 ###############
 # compareCoerce
@@ -286,6 +312,24 @@ comparison <- list(a=1:26, b=letters,
                    c=list(x=26:1))
 testCompare(compareCoerce, model, comparison, result=FALSE)
 
+# Some tests to make sure that simple comparisons pass through
+# equal "lm" objects
+x <- 1:10
+y <- rnorm(10)
+lm1 <- lm(y ~ x)
+testCompare(compareCoerce, lm1, lm1)
+
+# non-equal "lm" objects
+y2 <- rnorm(10)
+lm2 <- lm(y2 ~ x)
+testCompare(compareCoerce, lm1, lm2, result=FALSE)
+
+# equal expressions (also tests "call")
+testCompare(compareCoerce, expression(x + y), expression(x + y))
+
+# non-equal expressions
+testCompare(compareCoerce, expression(x + y), expression(y + x), result=FALSE)
+
 ###############
 # compareShorten
 ###############
@@ -337,6 +381,24 @@ comparison <- list(a=1:26, b=letters,
                    c=list(x=factor(letters)))
 testCompare(compareShorten, model, comparison)
 
+# Some tests to make sure that simple comparisons pass through
+# equal "lm" objects
+x <- 1:10
+y <- rnorm(10)
+lm1 <- lm(y ~ x)
+testCompare(compareShorten, lm1, lm1)
+
+# non-equal "lm" objects
+y2 <- rnorm(10)
+lm2 <- lm(y2 ~ x)
+testCompare(compareShorten, lm1, lm2, result=FALSE)
+
+# equal expressions (also tests "call")
+testCompare(compareShorten, expression(x + y), expression(x + y))
+
+# non-equal expressions
+testCompare(compareShorten, expression(x + y), expression(y + x), result=FALSE)
+
 ###############
 # compareIgnoreOrder
 ###############
@@ -385,6 +447,26 @@ comparison <- list(A=1:26,
                    B=letters)
 testCompare(compareIgnoreOrder, model, comparison,
             ignoreNameCase=TRUE)
+
+# Some tests to make sure that simple comparisons pass through
+# equal "lm" objects
+x <- 1:10
+y <- rnorm(10)
+lm1 <- lm(y ~ x)
+testCompare(compareIgnoreOrder, lm1, lm1)
+
+# non-equal "lm" objects
+y2 <- rnorm(10)
+lm2 <- lm(y2 ~ x)
+testCompare(compareIgnoreOrder, lm1, lm2, result=FALSE)
+
+# equal expressions (also tests "call")
+testCompare(compareIgnoreOrder, expression(x + y), expression(x + y))
+
+# non-equal expressions
+testCompare(compareIgnoreOrder,
+            expression(x + y), expression(y + x), result=FALSE)
+
 
 ###############
 # compareIgnoreNameCase
@@ -759,6 +841,16 @@ comparison <- data.frame(a=1:26,
                          b=letters)
 testCompare(compare, model, comparison, allowAll=TRUE)
 
+# Proper "lm" comparison
+lm1CO2 <- lm(uptake ~ Treatment + conc, data=CO2)
+lm2CO2 <- lm(uptake ~ conc + Treatment, data=CO2)
+# NOTE: overall result FALSE,
+# BUT 'residuals' and 'fitted.values' components are the same !
+compare(lm1CO2, lm2CO2)
+# With allowAll=TRUE, still overall FALSE, 
+# BUT now 'coefficients' and 'model' are ALSO the same !
+compare(lm1CO2, lm2CO2, allowAll=TRUE)
+
 ###############
 # compareName()
 ###############
@@ -812,6 +904,19 @@ compList <- compareFile(textConnection("{ x <- y <- 1:10 + .1 }"),
                         modelNames=c("x", "y"),
                         modelAnswers=list(x=1:10, y=1:10),
                         round=list(y=TRUE))
+stopifnot(!isTRUE(compList[[1]]) && isTRUE(compList[[2]]))
+
+# All rounding; both TRUE
+compList <- compareFile(textConnection("{ x <- y <- 1:10 + .1 }"),
+                        modelNames=c("x", "y"),
+                        modelAnswers=list(x=1:10, y=1:10),
+                        round=floor)
+stopifnot(all(sapply(compList, isTRUE)))
+# Only round 'y'; only 'y' TRUE
+compList <- compareFile(textConnection("{ x <- y <- 1:10 + .1 }"),
+                        modelNames=c("x", "y"),
+                        modelAnswers=list(x=1:10, y=1:10),
+                        round=list(y=function(x) signif(x, 1)))
 stopifnot(!isTRUE(compList[[1]]) && isTRUE(compList[[2]]))
 
 
