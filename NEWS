@@ -1,0 +1,11 @@
+
+Changes from version 0.1 to 0.2:
+-------------------------------
+
+- The 'round' argument to compare() (and compareEqual()
+  and compareFile()) may now be a function (of one argument).
+
+- Better defaults are provided so that, if no specific method
+  is provided for comparing objects of a certain class, a
+  default comparison is performed.  For example, "lm"
+  objects are compared as if they are just lists.

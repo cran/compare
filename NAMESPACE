@@ -89,4 +89,5 @@ S3method(print, markingComment)
 S3method(print, transformRule)
 S3method(print, markingRule)
 
+S3method(isTRUE, default)
 S3method(isTRUE, comparison)

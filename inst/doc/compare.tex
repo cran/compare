@@ -751,7 +751,7 @@ a simplified view of this result.
 
 Continuing the example from above,
 the \code{Examples} directory contains submissions from a further
-five students.  We can compare all of these submissions
+four students.  We can compare all of these submissions
 with the model answers and produce a summary of the results with
 a single call to \code{compareFiles()}. The appropriate code
 and output are shown in Figure
@@ -771,16 +771,15 @@ and output are shown in Figure
 > results
 \end{Sinput}
 \end{Schunk}
-{\scriptsize
+{\small
 \begin{Schunk}
 \begin{Soutput}
-         id                     age                    edu                    class                                     IndianMothers         
-student1 TRUE                   TRUE                   TRUE                   TRUE reordered levels                     FALSE object not found
-student2 TRUE                   TRUE                   TRUE                   TRUE                                      TRUE                  
-student3 TRUE                   TRUE                   TRUE                   TRUE coerced from <character> to <factor> FALSE object not found
-student4 TRUE                   TRUE                   TRUE                   TRUE coerced from <character> to <factor> TRUE renamed object   
-student5 TRUE                   TRUE                   TRUE                   FALSE object not found                    FALSE object not found
-student6 FALSE object not found FALSE object not found FALSE object not found FALSE object not found                    FALSE object not found
+         id    age   edu   class                                     IndianMothers         
+student1 TRUE  TRUE  TRUE  TRUE reordered levels                     FALSE object not found
+student2 TRUE  TRUE  TRUE  TRUE                                      TRUE                  
+student3 TRUE  TRUE  TRUE  TRUE coerced from <character> to <factor> FALSE object not found
+student4 TRUE  TRUE  TRUE  TRUE coerced from <character> to <factor> TRUE renamed object   
+student5 TRUE  TRUE  TRUE  FALSE object not found                    FALSE object not found
 \end{Soutput}
 \end{Schunk}
 }
@@ -795,14 +794,12 @@ and using a small font, as has been done here.}
 The results show that most students got the first three problems 
 correct.  They had more trouble getting the fourth problem right,
 with one getting the factor levels in the wrong order and two others
-producing a character vector rather than a factor.  Only one student
+producing a character vector rather than a factor.  Only one student,
+\code{student2},
 got the final problem exactly right and only one other, 
 \code{student4}, got essentially
 the right answer, though this student spelt the name of the object
-wrong.  One student, \code{student6}, got absolutely everything
-wrong by failing to create any of the desired objects.  This is 
-usually a sign that the student's code has failed to run, which is
-what has happened in this case.
+wrong.  
 
 \section*{Assigning marks and\\giving feedback}
 
@@ -886,13 +883,12 @@ student2                2             1
 student3                1             0
 student4                1             1
 student5                1             0
-student6                0             0
 \end{Soutput}
 \end{Schunk}
 For the first question, the third and fourth students lose a mark because
-of the coercion, the fifth student loses a mark because he has not generated 
-the required object, and the sixth student gets zero because his code did
-not run.
+of the coercion, and 
+the fifth student loses a mark because he has not generated 
+the required object.
 
 A similar suite of functions are provided to associate comments,
 rather than mark deductions, with  
@@ -918,7 +914,6 @@ student2 ""
 student3 "'class' is a factor!"
 student4 "'class' is a factor!"
 student5 ""                    
-student6 ""                    
 \end{Soutput}
 \end{Schunk}
 In  this case, we have just generated feedback for the students
