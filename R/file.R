@@ -31,7 +31,7 @@ compareFile <- function(filename, modelNames,
             source(modelCode)
     if (!is.null(modelSave))
         for (i in modelSave)
-            load(modelSave)
+            load(modelSave, envir=.GlobalEnv)
     # If modelAnswers not supplied, find them in the global workspace
     if (is.null(modelAnswers))
         modelAnswers <- lapply(modelNames, get,

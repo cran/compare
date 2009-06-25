@@ -101,8 +101,17 @@ nocomparisonMsg <- function(from, to) {
 
 # DO NOT restore class OR levels (for factors)
 # OR dim OR dimnames (for matrices/arrays)
+# If restoring names after a coercion, it is possible
+# for length(names) to be wrong (e.g., coerce a
+# vector with names attribute to a data frame
+# so expecting only 1 name).  In such cases,
+# (i.e., if length(names) is wrong) just rep()
+# names to the right length to avoid error messages
+# (unlikely to produce anything that compares nicely)
 restoreAttrs <- function(x, attrs) {
     for (i in names(attrs)) {
+        if (i %in% "names" && length(attrs[[i]]) != length(x))
+            attrs[[i]] <- rep(attrs[[i]], length.out=length(x))
         if (!(i %in% c("class", "levels", "dim", "dimnames")))
             attr(x, i) <- attrs[[i]]
     }
@@ -411,9 +420,9 @@ compareEqualDF <- function(model, comparison, compareFun,
                            ignoreColOrder=FALSE,
                            ignoreNameCase=ignoreNameCase,
                            ...) {
-    # If comparison has fewer columns than model, we can give
-    # up straight away
-    if (length(model) > length(comparison)) {
+    # If model and comparison have different number of
+    # columns, we can give up straight away
+    if (length(model) != length(comparison)) {
         return(comparison(model, comparison, FALSE, transform))
     }
     # The partial transform is just the original (incoming)
@@ -640,6 +649,7 @@ compareCoerce.default <- function(model, comparison,
                            transform, ...)
     } else {
         transform <- c(transform, nocomparisonMsg(model, comparison))
+        comparison(model, comparison, FALSE, transform)        
     }
 }
 
@@ -706,11 +716,14 @@ compareCoerce.integer <- function(model, comparison,
 compareCoerce.numeric <- function(model, comparison,
                                   transform=character(),
                                   equal=TRUE, ...) {
+    # The comparison has to be an atomic or a factor, otherwise just fail
+    if (!(is.atomic(comparison) || is.factor(comparison))) {
+        comp <- comparison(model, comparison, FALSE, transform)
     # If we already have a numeric, do not record any transformation
     # (possibly does a redundant check for identical or equal
     #  if those check have been done previously)
     # NOTE that integer vector is a special case
-    if (is.numeric(comparison) && !is.integer(comparison)) {
+    } else if (is.numeric(comparison) && !is.integer(comparison)) {
         comp <- same(model, comparison, transform, equal, ...)
     } else {
         # Retain all attributes so we can check for those separately
@@ -820,9 +833,9 @@ compareCoerce.table <- function(model, comparison,
 # - any transformations on the columns are persistent
 compareCoerceDF <- function(model, comparison, transform,
                             ...) {
-    # If comparison has fewer columns than model, we can give
-    # up straight away
-    if (ncol(model) > ncol(comparison)) {
+    # If model and comparison have different number of
+    # columns, we can give up straight away
+    if (ncol(model) != ncol(comparison)) {
         return(comparison(model, comparison, FALSE, transform))
     }
     # Only bother with columns in common

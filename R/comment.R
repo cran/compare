@@ -88,8 +88,13 @@ commentQuestion.comparisonList <- function(result, question) {
     comments <- character()
     for (i in question$names) {
         comp <- result[[i]]
-        newcomments <- sapply(question$comments, comparisonComments, comp)
-        comments <- growComments(comments, newcomments)
+        # If there is a comment for this question ...
+        comment <- grep(i, question$comments)
+        if (length(comment) > 0) {
+            newcomments <- comparisonComments(question$comments[[comment]],
+                                              comp)
+            comments <- growComments(comments, newcomments)
+        }
     }
     comments
 }
