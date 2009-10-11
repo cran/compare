@@ -1,10 +1,10 @@
 Package: compare
-Version: 0.2-2
+Version: 0.2-3
 Title: Comparing Objects for Differences
 Author: Paul Murrell
 Maintainer: Paul Murrell <p.murrell@auckland.ac.nz>
 Description: Functions for comparing vectors and data frames.
 License: GPL (>= 2)
-Packaged: 2009-06-25 01:55:48 UTC; paul
+Packaged: 2009-10-11 19:24:23 UTC; paul
 Repository: CRAN
-Date/Publication: 2009-06-25 07:25:16
+Date/Publication: 2009-10-12 06:48:26

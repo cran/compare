@@ -50,7 +50,5 @@ questionComments(c("id", "age", "edu", "class"),
   \code{\link{commentQuestions}} and 
   \code{\link{compareFiles}}
 }
-\examples{
-}
 \keyword{utilities}
 \keyword{logic}

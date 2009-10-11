@@ -64,7 +64,5 @@ questionMarks(c("id", "age", "edu", "class"),
   \code{\link{markQuestions}} and 
   \code{\link{compareFiles}}
 }
-\examples{
-}
 \keyword{utilities}
 \keyword{logic}
