@@ -303,6 +303,12 @@ compareEqual.factor <- function(model, comparison,
     comp
 }
 
+compareEqual.Date <- function(model, comparison,
+                              transform=character(),
+                              ...) {
+    compareIdentical(model, comparison, transform, ...)
+}
+
 # 'x' and 'y' are lists of names
 # The question is:  for each component of 'x', where
 # is an identical component in 'y' ?
@@ -338,8 +344,12 @@ compareEqual.array <- function(model, comparison,
             transform <- c(transform, "reordered dimensions")
         }
     }
-    # Allow for either character or numeric matrix
-    if (is.numeric(model) && is.numeric(comparison)) {
+    # Allow for either character or numeric or logical matrix
+    if (is.logical(model) && is.logical(comparison)) {
+        comp <- compareEqual(as.logical(model),
+                             as.logical(comparison),
+                             transform, ...)
+    } else if (is.numeric(model) && is.numeric(comparison)) {
         comp <- compareEqual(as.numeric(model),
                              as.numeric(comparison),
                              transform, ...)
@@ -348,7 +358,8 @@ compareEqual.array <- function(model, comparison,
                              as.character(comparison),
                              transform, ...)
     } else {
-        stop("Only numeric or character arrays currently supported")
+        comp <- compareIdentical(model, comparison, transform, ...)
+        warning("Only logical or numeric or character arrays currently supported")
     }
     # If the underlying data are the same, still need to check
     # that matrix has the correct dimensions and dimnames
@@ -704,11 +715,16 @@ compareCoerce.integer <- function(model, comparison,
         if (is.factor(comparison)) {
             coerced <- as.integer(as.character(comparison))
         } else {
-            coerced <- suppressWarnings(as.integer(comparison))
+            coerced <- try(suppressWarnings(as.integer(comparison)))
         }
-        coerced <- restoreAttrs(coerced, attrs)
-        transform <- c(transform, coercedMsg(comparison, "integer"))
-        comp <- same(model, coerced, transform, equal, ...)
+        if (inherits(coerced, "try-error")) {
+            transform <- c(transform, nocomparisonMsg(model, comparison))
+            comp <- comparison(model, comparison, FALSE, transform)
+        } else {
+            coerced <- restoreAttrs(coerced, attrs)
+            transform <- c(transform, coercedMsg(comparison, "integer"))
+            comp <- same(model, coerced, transform, equal, ...)
+        }
     }
     comp    
 }
@@ -769,11 +785,32 @@ compareCoerce.factor <- function(model, comparison,
     if (is.factor(comparison)) {
         comp <- same(model, comparison, transform, equal, ...)
     } else {
-        attrs <- attributes(comparison)
+        if (!is.atomic(comparison)) {
+            transform <- c(transform, nocomparisonMsg(model, comparison))
+            comp <- comparison(model, comparison, FALSE, transform)            
+        } else {
+            attrs <- attributes(comparison)
+            # Retain all attributes so we can check for those separately
+            coerced <- as.factor(comparison)
+            coerced <- restoreAttrs(coerced, attrs)
+            transform <- c(transform, coercedMsg(comparison, "factor"))
+            comp <- same(model, coerced, transform, equal, ...)
+        }
+    }
+    comp    
+}
+
+compareCoerce.Date <- function(model, comparison,
+                                  transform=character(),
+                                  equal=TRUE, ...) {
+    if (inherits(comparison, "Date")) {
+        comp <- same(model, comparison, transform, equal, ...)
+    } else {
         # Retain all attributes so we can check for those separately
-        coerced <- as.factor(comparison)
+        attrs <- attributes(comparison)
+        coerced <- as.Date(comparison)
         coerced <- restoreAttrs(coerced, attrs)
-        transform <- c(transform, coercedMsg(comparison, "factor"))
+        transform <- c(transform, coercedMsg(comparison, "Date"))
         comp <- same(model, coerced, transform, equal, ...)
     }
     comp    
@@ -1280,7 +1317,11 @@ compareIgnoreOrder.default <- function(model, comparison,
         comp <- compareIgnoreOrder.list(as.list(unclass(model)),
                                         as.list(unclass(comparison)),
                                         transform, ...)
-    } else {
+    } else if (!is.atomic(comparison)) {
+        # Model is vector but comparison is not
+        transform <- c(transform, nocomparisonMsg(model, comparison))
+        comp <- comparison(model, comparison, FALSE, transform)
+    } else { 
         # Handle any sort of vector ?
         # Only try reordering if it is necessary
         modelOrder <- order(model)

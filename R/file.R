@@ -27,11 +27,11 @@ compareFile <- function(filename, modelNames,
     # are already in the global workspace
     if (!is.null(modelCode))
         # Allow modelCode to be vector of file names
-        for (i in modelCode)
-            source(modelCode)
+        for (FILENAME in modelCode)
+            source(FILENAME)
     if (!is.null(modelSave))
-        for (i in modelSave)
-            load(modelSave, envir=.GlobalEnv)
+        for (FILENAME in modelSave)
+            load(FILENAME, envir=.GlobalEnv)
     # If modelAnswers not supplied, find them in the global workspace
     if (is.null(modelAnswers))
         modelAnswers <- lapply(modelNames, get,
@@ -92,11 +92,11 @@ compareFiles <- function(filenames, modelNames,
     # model answer objects are already in the global workspace
     if (!is.null(modelCode))
         # Allow modelCode to be vector of file names
-        for (i in modelCode)
-            source(modelCode)
+        for (FILENAME in modelCode)
+            source(FILENAME)
     if (!is.null(modelSave))
-        for (i in modelSave)
-            load(modelSave)
+        for (FILENAME in modelSave)
+            load(FILENAME)
     # Stick the model answer objects in a list
     # This does two things:
     # (i) keeps individual model answer objects from being

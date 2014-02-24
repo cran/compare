@@ -1,7 +1,22 @@
+\documentclass[a4paper]{article}
+\usepackage[round]{natbib}
+\usepackage{boxedminipage} % for compare.tex
+\usepackage{hyperref} % for \url
+\bibliographystyle{abbrvnat}
 
+\usepackage{Sweave}
+%\VignetteIndexEntry{Introduction to the compare package}
+%\VignettePackage{compare}
 
-\title{Comparing Non-Identical Objects}
-\subtitle{Introducing the `\pkg{compare}' package}
+\newcommand{\pkg}[1]{{\bfseries #1}}
+\newcommand{\code}[1]{{\ttfamily #1}}
+\newcommand{\R}{{\sffamily R}}
+\newcommand{\dfn}[1]{\emph{#1}}
+
+\begin{document}
+
+\title{Comparing Non-Identical Objects\\
+Introducing the `compare' package}
 \author{by Paul Murrell}
 
 \maketitle
@@ -960,3 +975,5 @@ comments and suggestions, on both this article and the
 \pkg{compare} package itself.
 
 \bibliography{compare}
+
+\end{document}

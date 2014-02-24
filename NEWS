@@ -1,3 +1,21 @@
+Changes from version 0.2-2 to 0.2-4:
+---------------------------------
+
+- Added methods for comparing "Date" objects.
+
+- Added compareEqual() method for logical arrays.
+
+- Made compareIgnoreOrder.default() more robust.
+  Should now handle comparing model vector with non-vector comparison.
+
+- Made compareFile() and compareFiles() more robust 
+  (by using internal variable names that are less likely to be
+   overwritten by the model answer code!)
+
+- Made coerceCoerce.factor() more robust.
+  Should now handle comparing model factor with non-atomic comparison.
+
+
 Changes from version 0.2 to 0.2-2:
 ---------------------------------
 
