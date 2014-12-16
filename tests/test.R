@@ -195,6 +195,12 @@ testCompare(compareEqual, model, comparison,
 # non-equal data frames
 testCompare(compareEqual, model, comparison, result=FALSE)
 
+# non-equal data frames with zero columns
+model <- data.frame()
+comparison <- model
+attr(comparison, "difference") <- 1
+testCompare(compareEqual, model, comparison, result=FALSE)
+
 # equal lists
 model <- list(a=1:26, b=letters,
               c=list(x=factor(letters)))

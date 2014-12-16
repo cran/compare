@@ -458,7 +458,7 @@ compareEqualDF <- function(model, comparison, compareFun,
     # Only bother with columns in common
     multipleResult <- mapply(compareFun,
                              model,
-                             comparison[1:length(model)],
+                             comparison[seq_along(model)],
                              # Begin each col check with pristine transform
                              # There are certain transforms that should not
                              # be considered for individual columns
@@ -477,18 +477,18 @@ compareEqualDF <- function(model, comparison, compareFun,
         # in which case, just use column numbers
         colNames <- names(multipleResult)
         if (is.null(colNames))
-            colNames <- 1:length(model)
+            colNames <- seq_along(model)
         transform <- c(transform,
                        unlist(mapply(multipleTransform,
                                      multipleResult,
                                      colNames)))
     }
     # Replace each column with its tM version
-    for (i in 1:length(model)) {
+    for (i in seq_along(model)) {
         model[[i]] <- multipleResult[[i]]$tM
     }
     # Replace each column (that is in common with model) with its tC version
-    for (i in 1:length(model)) {
+    for (i in seq_along(model)) {
         comparison[[i]] <- multipleResult[[i]]$tC
     }
     multipleComparison(model, comparison,
@@ -529,7 +529,7 @@ compareListComponents <- function(model, comparison,
             mapply(recurseFun,
                    model,
                    # Only makes sense to compare components in common
-                   comparison[1:length(model)],
+                   comparison[seq_along(model)],
                    # transform is not specified;
                    # each component comparison starts with blank transform
                    MoreArgs=list(ignoreComponentOrder=ignoreComponentOrder,
@@ -547,18 +547,18 @@ compareListComponents <- function(model, comparison,
             # in which case, just use column numbers
             cNames <- names(multipleResult)
             if (is.null(cNames))
-                cNames <- 1:length(model)
+                cNames <- seq_along(model)
             transform <- c(transform,
                            unlist(mapply(multipleTransform,
                                          multipleResult,
                                          cNames)))
         }
         # Replace each column with its tM version
-        for (i in 1:length(model)) {
+        for (i in seq_along(model)) {
             model[[i]] <- multipleResult[[i]]$tM
         }
         # Replace each column (that is in common with mode) with its tC version
-        for (i in 1:length(model)) {
+        for (i in seq_along(model)) {
             comparison[[i]] <- multipleResult[[i]]$tC
         }
         # Overall result is TRUE if all children are equal
@@ -878,7 +878,7 @@ compareCoerceDF <- function(model, comparison, transform,
     # Only bother with columns in common
     multipleResult <- mapply(compareCoerce,
                              model,
-                             comparison[1:length(model)],
+                             comparison[seq_along(model)],
                              # Begin each col check with pristine transform
                              MoreArgs=list(...),
                              SIMPLIFY=FALSE)
@@ -900,7 +900,7 @@ compareCoerceDF <- function(model, comparison, transform,
         # in which case, just use column numbers
         colNames <- names(multipleResult)
         if (is.null(colNames))
-            colNames <- 1:length(model)
+            colNames <- seq_along(model)
         transform <- c(transform,
                        unlist(mapply(multipleTransform,
                                      multipleResult,
@@ -911,17 +911,17 @@ compareCoerceDF <- function(model, comparison, transform,
                                             colNames, partial=TRUE)))
     }
     # Replace each column with its tM version
-    for (i in 1:length(model)) {
+    for (i in seq_along(model)) {
         model[[i]] <- multipleResult[[i]]$tM
     }
-    for (i in 1:length(model)) {
+    for (i in seq_along(model)) {
         partialModel[[i]] <- multipleResult[[i]]$tMpartial
     }
     # Replace each column (that is in common with model) with its tC version
-    for (i in 1:length(model)) {
+    for (i in seq_along(model)) {
         comparison[[i]] <- multipleResult[[i]]$tC
     }
-    for (i in 1:length(model)) {
+    for (i in seq_along(model)) {
         partialComparison[[i]] <- multipleResult[[i]]$tCpartial
     }
     multipleComparison(model, comparison,
@@ -978,7 +978,7 @@ coerceListComponents <- function(model, comparison,
         mapply(compareCoerce,
                model,
                # Only makes sense to compare components in common
-               comparison[1:length(model)],
+               comparison[seq_along(model)],
                # transform is not specified;
                # each component comparison starts with blank transform
                MoreArgs=list(ignoreComponentOrder=ignoreComponentOrder,
@@ -1003,7 +1003,7 @@ coerceListComponents <- function(model, comparison,
         # in which case, just use column numbers
         cNames <- names(multipleResult)
         if (is.null(cNames))
-            cNames <- 1:length(model)
+            cNames <- seq_along(model)
         transform <- c(transform,
                        unlist(mapply(multipleTransform,
                                      multipleResult,
@@ -1014,17 +1014,17 @@ coerceListComponents <- function(model, comparison,
                                             cNames, partial=TRUE)))
     }
     # Replace each column with its tM version
-    for (i in 1:length(model)) {
+    for (i in seq_along(model)) {
         model[[i]] <- multipleResult[[i]]$tM
     }
-    for (i in 1:length(model)) {
+    for (i in seq_along(model)) {
         partialModel[[i]] <- multipleResult[[i]]$tMpartial
     }
     # Replace each column (that is in common with model) with its tC version
-    for (i in 1:length(model)) {
+    for (i in seq_along(model)) {
         comparison[[i]] <- multipleResult[[i]]$tC
     }
-    for (i in 1:length(model)) {
+    for (i in seq_along(model)) {
         partialComparison[[i]] <- multipleResult[[i]]$tCpartial
     }
     # Overall result is TRUE if all children are equal
