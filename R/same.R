@@ -205,9 +205,7 @@ compareEqual.numeric <- function(model, comparison,
         # Allow rounding
         if (is.function(round)) {
             # Allow function (of single argument)
-            # Only round if necessary
-            if (!isTRUE(all.equal(model, comparison)) &&
-                !identical(round(comparison), comparison)) {
+            if (!result) {
                 roundedM <- round(model)
                 roundedC <- round(comparison)
                 roundedT <- c(transform, "rounded")
@@ -220,9 +218,7 @@ compareEqual.numeric <- function(model, comparison,
             if (is.logical(round)) {
                 round <- 0
             }
-            # Only round if necessary
-            if (!isTRUE(all.equal(model, comparison)) &&
-                !identical(round(comparison, round), comparison)) {
+            if (!result) {
                 roundedM <- round(model, round)
                 roundedC <- round(comparison, round)
                 roundedT <- c(transform, "rounded")

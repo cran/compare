@@ -1,5 +1,5 @@
 Package: compare
-Version: 0.2-5
+Version: 0.2-6
 Title: Comparing Objects for Differences
 Author: Paul Murrell
 Maintainer: Paul Murrell <p.murrell@auckland.ac.nz>
@@ -8,7 +8,7 @@ Description: Functions to compare a model object to a comparison object.
   explore various modifications of the objects (e.g., sorting rows,
   dropping names) to see if the modified versions are identical.
 License: GPL (>= 2)
-Packaged: 2014-12-16 19:42:21 UTC; EC\pmur002
 NeedsCompilation: no
+Packaged: 2015-08-25 01:46:54 UTC; EC\pmur002
 Repository: CRAN
-Date/Publication: 2014-12-16 22:32:51
+Date/Publication: 2015-08-25 08:54:01
